@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "An income or expense record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "amount": { "type": "number" },
+        "category": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["Income", "Expense"] },
+        "isRecurring": { "type": "boolean" },
+        "recurringInterval": { "type": "string", "enum": ["daily", "weekly", "monthly", "yearly"] },
+        "lastGenerated": { "type": "string", "format": "date-time" },
+        "receiptUrl": { "type": "string" },
+        "currency": { "type": "string" }
+      },
+      "required": ["id", "uid", "date", "amount", "category", "paymentMethod", "type", "currency"]
+    },
+    "Budget": {
+      "title": "Budget",
+      "description": "A monthly budget for a specific category.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "month": { "type": "string" }
+      },
+      "required": ["id", "uid", "category", "amount", "month"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User preferences and profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "currency": { "type": "string" },
+        "theme": { "type": "string", "enum": ["light", "dark"] }
+      },
+      "required": ["uid", "email", "currency", "theme"]
+    }
+  },
+  "firestore": {
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "A collection of all user transactions."
+    },
+    "/budgets/{budgetId}": {
+      "schema": "Budget",
+      "description": "A collection of all user budgets."
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "A collection of all user profiles."
+    }
+  }
+}

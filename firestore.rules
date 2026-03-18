@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{userId}
+    // Document ID: userId (UID)
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - email: string (required, email format)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional, URL format)
+    //   - currency: string (required, e.g., "USD")
+    //   - theme: string (required, "light" | "dark")
+    //
+    // Collection: /transactions/{transactionId}
+    // Document ID: transactionId (UUID)
+    // Fields:
+    //   - id: string (required, immutable)
+    //   - uid: string (required, immutable, matches owner)
+    //   - date: string (required, ISO 8601)
+    //   - amount: number (required, positive)
+    //   - category: string (required)
+    //   - paymentMethod: string (required)
+    //   - description: string (optional)
+    //   - type: string (required, "Income" | "Expense")
+    //   - isRecurring: bool (optional)
+    //   - recurringInterval: string (optional)
+    //   - lastGenerated: string (optional, ISO 8601)
+    //   - receiptUrl: string (optional, URL format)
+    //   - currency: string (required)
+    //
+    // Collection: /budgets/{budgetId}
+    // Document ID: budgetId (UUID)
+    // Fields:
+    //   - id: string (required, immutable)
+    //   - uid: string (required, immutable, matches owner)
+    //   - category: string (required)
+    //   - amount: number (required, positive)
+    //   - month: string (required, "YYYY-MM")
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "ganjeblerence@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function isValidMonthString(monthStr) {
+      return monthStr is string && monthStr.matches("^\\d{4}-\\d{2}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.uid is string && data.uid == request.auth.uid &&
+             data.email is string && isValidEmail(data.email) &&
+             data.currency is string && data.currency.size() <= 10 &&
+             data.theme in ['light', 'dark'];
+    }
+
+    function isValidTransaction(data) {
+      return data.id is string && data.uid == request.auth.uid &&
+             data.amount is number && data.amount >= 0 &&
+             data.category is string && data.category.size() <= 50 &&
+             data.type in ['Income', 'Expense'] &&
+             data.currency is string && data.currency.size() <= 10 &&
+             (!('receiptUrl' in data) || isValidUrl(data.receiptUrl)) &&
+             (!('lastGenerated' in data) || isValidDateString(data.lastGenerated)) &&
+             (!('recurringInterval' in data) || data.recurringInterval in ['daily', 'weekly', 'monthly', 'yearly']);
+    }
+
+    function isValidBudget(data) {
+      return data.id is string && data.uid == request.auth.uid &&
+             data.amount is number && data.amount >= 0 &&
+             data.category is string && data.category.size() <= 50 &&
+             isValidMonthString(data.month);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                      request.resource.data.uid == resource.data.uid;
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid && isValidTransaction(request.resource.data);
+      allow update: if isDocOwner() && isValidTransaction(request.resource.data) && 
+                      request.resource.data.uid == resource.data.uid &&
+                      request.resource.data.id == resource.data.id;
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /budgets/{budgetId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid && isValidBudget(request.resource.data);
+      allow update: if isDocOwner() && isValidBudget(request.resource.data) && 
+                      request.resource.data.uid == resource.data.uid &&
+                      request.resource.data.id == resource.data.id;
+      allow delete: if isDocOwner() || isAdmin();
+    }
+  }
+}
