@@ -9,7 +9,8 @@ const CACHE_NAME = 'spendwisely-v1';
 const ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  './assets/index.css'
 ];
 
 /**
