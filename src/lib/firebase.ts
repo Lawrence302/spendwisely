@@ -10,7 +10,6 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import app , {db} from '../../firebase-applet-config';
 
 
-
 // Initialize Firebase Authentication
 export const auth = getAuth(app);
 

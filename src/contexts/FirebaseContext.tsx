@@ -6,7 +6,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   auth, 
-  db, 
   storage, 
   googleProvider, 
   signInWithPopup, 
@@ -16,6 +15,7 @@ import {
   handleFirestoreError,
   OperationType
 } from '../lib/firebase';
+import { db } from '@/firebase-applet-config';
 import { 
   collection, 
   doc, 
