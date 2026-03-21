@@ -7,13 +7,9 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, onSnapshot, deleteDoc, updateDoc, getDocFromServer } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import firebaseConfig from '../../firebase-applet-config.json';
+import app , {db} from '../../firebase-applet-config';
 
-// Initialize the Firebase application with the configuration from firebase-applet-config.json
-const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore database with the specific database ID provided in the config
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 // Initialize Firebase Authentication
 export const auth = getAuth(app);
