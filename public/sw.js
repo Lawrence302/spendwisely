@@ -10,7 +10,6 @@ const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './assets/index.css',
   './icon.png',
   './favicon32.svg',
 ];
