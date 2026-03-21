@@ -82,18 +82,38 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, onEd
    */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const transactionData = {
-      amount: parseFloat(amount),
-      category,
-      date: new Date(date).toISOString(),
-      paymentMethod,
-      description: description.trim() || undefined,
-      type,
-      isRecurring,
-      recurringInterval: isRecurring ? recurringInterval : undefined,
-      receiptUrl: receiptUrl || undefined,
-      currency: profile?.currency || 'USD',
-    };
+    // const transactionData = {
+    //   amount: parseFloat(amount),
+    //   category,
+    //   date: new Date(date).toISOString(),
+    //   paymentMethod,
+    //   description: description.trim() ,
+    //   type,
+    //   isRecurring,
+    //   recurringInterval: isRecurring ? recurringInterval : null,
+    //   receiptUrl: receiptUrl ,
+    //   currency: profile?.currency || 'USD',
+    // };
+
+    // Create the base object with required fields
+  const transactionData: any = {
+    amount: parseFloat(amount),
+    category,
+    date: new Date(date).toISOString(),
+    paymentMethod,
+    type,
+    currency: profile?.currency || 'USD',
+  };
+
+  // Only add optional fields if they actually have a value
+  if (description.trim()) transactionData.description = description.trim();
+  if (isRecurring) {
+    transactionData.isRecurring = true;
+    if (recurringInterval) transactionData.recurringInterval = recurringInterval;
+  }
+  if (receiptUrl) transactionData.receiptUrl = receiptUrl;
+
+    
 
     if (editTransaction && onEdit) {
       onEdit({ ...transactionData, id: editTransaction.id, uid: editTransaction.uid });
