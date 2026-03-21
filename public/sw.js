@@ -7,10 +7,12 @@ const CACHE_NAME = 'spendwisely-v1';
 
 // List of static assets to cache during the 'install' phase
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  './assets/index.css'
+  './',
+  './index.html',
+  './manifest.json',
+  './assets/index.css',
+  './icon.png',
+  './favicon32.svg',
 ];
 
 /**
